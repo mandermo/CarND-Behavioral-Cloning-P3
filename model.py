@@ -37,9 +37,13 @@ def lines_to_X_and_y(batch_lines):
         filename = source_path.split('/')[-1]
         current_path = os.path.join('udacity-my-driving-data', 'IMG', filename)
         image = cv2.imread(current_path)
+        angle = float(line[3])
         images.append(image)
-        measurement = float(line[3])
-        measurements.append(measurement)
+        measurements.append(angle)
+
+        # Add vertical flip
+        images.append(cv2.flip(image,1))
+        measurements.append(-angle)
     X_train = np.array(images)
     y_train = np.array(measurements)
     return X_train, y_train
@@ -63,7 +67,7 @@ model.add(Dense(1))
 model.compile(loss='mse', optimizer='adam')
 
 model.fit_generator(
-        train_generator, samples_per_epoch=len(train_lines),
+        train_generator, samples_per_epoch=2*len(train_lines),
         validation_data=validation_generator,
         nb_val_samples=len(validation_lines), nb_epoch=7)
 
