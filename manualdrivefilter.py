@@ -1,11 +1,12 @@
 # Script to filter out frames from a recording. Useful for recovery driving
 # and only keep the recovery part, where the car comes back to the center, but
 # don't keep the part when car goes out of center. Press q to quit and and
-# space to keep frame.
+# press space to toggle keeping frames.
 import csv
 import cv2
 import os
 import sys
+import time
 
 
 def read_lines_from_driving_log(path):
@@ -32,16 +33,25 @@ def line_to_image_and_angle(line, indrivedir):
     return image,angle
 
 
-def visual_manual_filtering(indrivelogpath, outdrivelogpath, timeperframe):
+def visual_manual_filtering(indrivelogpath, outdrivelogpath, timeperframe,
+        framescale):
     indrivedir = os.path.dirname(indrivelogpath)
     lines = read_lines_from_driving_log(indrivelogpath)
+    # True if key was down last frame.
+    # Problem is that waitKey with time out does not wait for timeout when a
+    # key is pressed. Therefore this cheep and ugly homemade toggle logic.
+    waskeydown = False
+    savingframes = False
     try:
         with open(outdrivelogpath, 'w') as outdrivelogfile:
             outdrivelog = csv.writer(outdrivelogfile, delimiter = ',')
             for line in lines:
                 image,angle = line_to_image_and_angle(line, indrivedir)
-                cv2.putText(image, 'Angle: {}'.format(angle), (20,20),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
+                image = cv2.resize(image, None, fx=framescale,fy=framescale)
+                cv2.putText(image, 'Angle: {:.2f}'.format(angle),
+                        (20,20), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
+                cv2.putText(image, 'Savingframes: {}'.format(savingframes),
+                    (20,100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv2.LINE_AA)
                 cv2.imshow('display', image)
                 ret = cv2.waitKey(timeperframe)
                 if ret > 0:
@@ -49,8 +59,14 @@ def visual_manual_filtering(indrivelogpath, outdrivelogpath, timeperframe):
                     if ret == ord('q'):
                         # Press q to quit
                         return
-                    elif ret == ord(' '):
-                        outdrivelog.writerow(line)
+                    elif not waskeydown and ret == ord(' '):
+                        savingframes = not savingframes
+                    waskeydown = True
+                else:
+                    waskeydown = False
+
+                if savingframes:
+                    outdrivelog.writerow(line)
     finally:
         cv2.destroyAllWindows()
 
@@ -58,4 +74,6 @@ def visual_manual_filtering(indrivelogpath, outdrivelogpath, timeperframe):
 if __name__ == '__main__':
     indrivelogpath, outdrivelogpath = sys.argv[1:3]
     timeperframe = int(sys.argv[3]) if len(sys.argv)>3 else 67
-    visual_manual_filtering(indrivelogpath, outdrivelogpath, timeperframe)
+    framescale = float(sys.argv[4]) if len(sys.argv)>4 else 1.0
+    visual_manual_filtering(indrivelogpath, outdrivelogpath, timeperframe,
+            framescale)
