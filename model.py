@@ -57,17 +57,12 @@ def generator_from_lines(lines, augment, batch_size=32):
                 batch_lines])
             yield np.array(X),np.array(y)
 
+crop_top = 70
+crop_bottom = 25
 
 def make_sample_from_line(line, augment):
     img = cv2.imread(line.center_img_path)
     angle = line.angle
-
-    # Cropp 70 from top and 25 from bottom
-    cropped = img[70:-25,:,:]
-
-    # Approx normalize
-    img = img / 255.0
-    img -= 0.5
 
     if augment:
         if np.random.choice([False, True]):
@@ -95,10 +90,12 @@ train_generator = generator_from_lines(train_lines, True)
 validation_generator = generator_from_lines(validation_lines, False)
 
 from keras.models import Sequential
-from keras.layers import Flatten, Dense
+from keras.layers import Cropping2D, Dense, Flatten, Lambda 
 
 model = Sequential()
-model.add(Flatten(input_shape=(160,320,3)))
+model.add(Cropping2D(cropping=((71,25),(0,0)), input_shape=(160,320,3)))
+model.add(Lambda(lambda x: x / 255 - .5))
+model.add(Flatten())
 model.add(Dense(1))
 
 model.compile(loss='mse', optimizer='adam')
@@ -106,6 +103,6 @@ model.compile(loss='mse', optimizer='adam')
 model.fit_generator(
         train_generator, samples_per_epoch=2*len(train_lines),
         validation_data=validation_generator,
-        nb_val_samples=len(validation_lines), nb_epoch=7)
+        nb_val_samples=len(validation_lines), nb_epoch=3)
 
 model.save('model.h5')
