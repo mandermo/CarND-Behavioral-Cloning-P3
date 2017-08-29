@@ -91,11 +91,14 @@ validation_generator = generator_from_lines(validation_lines, False)
 
 from keras.models import Sequential
 from keras.layers import Cropping2D, Dense, Flatten, Lambda 
+from keras.layers.convolutional import Conv2D
 
 model = Sequential()
 model.add(Cropping2D(cropping=((71,25),(0,0)), input_shape=(160,320,3)))
 model.add(Lambda(lambda x: x / 255 - .5))
+model.add(Conv2D(10, 5, 5, activation='elu'))
 model.add(Flatten())
+model.add(Dense(20))
 model.add(Dense(1))
 
 model.compile(loss='mse', optimizer='adam')
