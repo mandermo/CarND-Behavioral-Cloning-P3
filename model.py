@@ -81,6 +81,7 @@ def read_all_driving_logs(driving_log_paths):
 driving_log_paths = [
     'udacity-my-driving-data/driving_log.csv',
     'drive2/driving_log.csv',
+    'drive3/driving_log.csv',
     'recoverydriving1/recovery_log.csv',
     ]
 
@@ -96,13 +97,21 @@ validation_generator = generator_from_lines(validation_lines, False)
 from keras.models import Sequential
 from keras.layers import Cropping2D, Dense, Flatten, Lambda 
 from keras.layers.convolutional import Conv2D
+from keras.layers.local import LocallyConnected2D
+from keras.layers.pooling import MaxPooling2D
 
 model = Sequential()
 model.add(Cropping2D(cropping=((71,25),(0,0)), input_shape=(160,320,3)))
 model.add(Lambda(lambda x: x / 255 - .5))
-model.add(Conv2D(10, 5, 5, activation='elu', name='conv1'))
+model.add(Conv2D(64, 5, 5, activation='elu', name='conv1'))
+model.add(MaxPooling2D((2,2)))
+model.add(Conv2D(14, 5, 5, activation='elu', name='conv2'))
+model.add(MaxPooling2D((2,2)))
+model.add(Conv2D(10, 5, 5, activation='elu', name='conv3'))
+model.add(LocallyConnected2D(1, 5, 5, activation='elu'))
 model.add(Flatten())
-model.add(Dense(20))
+model.add(Dense(50, activation='elu'))
+model.add(Dense(20, activation='elu'))
 model.add(Dense(1))
 
 model.compile(loss='mse', optimizer='adam')
