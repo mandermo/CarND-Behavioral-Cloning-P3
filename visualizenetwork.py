@@ -8,6 +8,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+# My file
+import common
+
 # Returns the outputs from a layer.
 def get_outputs_from_layer(model, layer_name, img):
     layer = next(layer for layer in model.layers if layer.name == layer_name)
@@ -96,6 +99,8 @@ if __name__ == '__main__':
     model = load_model(args.model)
 
     img = cv2.imread(args.image)
+
+    img = common.preprocess_img(img)
 
     outputs = get_outputs_from_layer(model, args.layer, img)
     

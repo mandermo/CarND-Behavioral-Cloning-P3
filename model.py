@@ -5,6 +5,8 @@ import os
 from sklearn.model_selection import train_test_split
 import sklearn
 
+# My file
+import common
 
 class DrivingLogLine:
     def __init__(self, line, img_dir_path):
@@ -57,11 +59,13 @@ def generator_from_lines(lines, augment, batch_size=32):
                 batch_lines])
             yield np.array(X),np.array(y)
 
+
 crop_top = 70
 crop_bottom = 25
 
 def make_sample_from_line(line, augment):
     img = cv2.imread(line.center_img_path)
+    img = common.preprocess_img(img)
     angle = line.angle
 
     if augment:
@@ -102,7 +106,6 @@ from keras.layers.pooling import MaxPooling2D
 
 model = Sequential()
 model.add(Cropping2D(cropping=((71,25),(0,0)), input_shape=(160,320,3)))
-model.add(Lambda(lambda x: x / 255 - .5))
 model.add(Conv2D(10, 1, 1, activation='elu', name='1x1nr1'))
 model.add(Conv2D(40, 5, 5, activation='elu', name='conv2'))
 model.add(MaxPooling2D((2,2)))
@@ -120,6 +123,6 @@ model.compile(loss='mse', optimizer='adam')
 model.fit_generator(
         train_generator, samples_per_epoch=2*len(train_lines),
         validation_data=validation_generator,
-        nb_val_samples=len(validation_lines), nb_epoch=3)
+        nb_val_samples=len(validation_lines), nb_epoch=2)
 
 model.save('model.h5')
