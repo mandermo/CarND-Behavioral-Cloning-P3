@@ -71,6 +71,7 @@ def make_sample_from_line(line, augment):
     if augment:
         if np.random.choice([False, True]):
             img = cv2.flip(img,1)
+            angle = -angle
     
     return (img,angle)
 
@@ -125,6 +126,6 @@ model.compile(loss='mse', optimizer='adam')
 model.fit_generator(
         train_generator, samples_per_epoch=2*len(train_lines),
         validation_data=validation_generator,
-        nb_val_samples=len(validation_lines), nb_epoch=4)
+        nb_val_samples=len(validation_lines), nb_epoch=2)
 
 model.save('model.h5')
