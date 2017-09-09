@@ -101,16 +101,19 @@ validation_generator = generator_from_lines(validation_lines, False)
 from keras.models import Sequential
 from keras.layers import Cropping2D, Dense, Flatten, Lambda 
 from keras.layers.convolutional import Conv2D
+from keras.layers.core import Dropout
 from keras.layers.local import LocallyConnected2D
 from keras.layers.pooling import MaxPooling2D
 
 model = Sequential()
 model.add(Cropping2D(cropping=((69,25),(0,0)), input_shape=(160,320,3)))
 model.add(Conv2D(24, 5, 5, subsample=(2,2), activation='elu', name='conv1'))
+model.add(Dropout(0.5))
 model.add(Conv2D(36, 5, 5, subsample=(2,2), activation='elu', name='conv2'))
 model.add(Conv2D(48, 5, 5, subsample=(2,2), activation='elu', name='conv3'))
 model.add(Conv2D(64, 3, 3, activation='elu', name='conv4'))
 model.add(Conv2D(64, 3, 3, activation='elu', name='conv5'))
+model.add(Dropout(0.5))
 model.add(Flatten())
 model.add(Dense(1164, activation='elu'))
 model.add(Dense(100, activation='elu'))
@@ -122,6 +125,6 @@ model.compile(loss='mse', optimizer='adam')
 model.fit_generator(
         train_generator, samples_per_epoch=2*len(train_lines),
         validation_data=validation_generator,
-        nb_val_samples=len(validation_lines), nb_epoch=5)
+        nb_val_samples=len(validation_lines), nb_epoch=4)
 
 model.save('model.h5')
