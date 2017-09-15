@@ -77,7 +77,8 @@ def telemetry(sid, data):
         image_array = common.preprocess_img(image_array)
         #print('image_array type after preprocess: {}'.format(image_array.dtype))
 
-        steering_angle = float(model.predict(image_array[None, :, :, :], batch_size=1))
+        inv_steer_radius = float(model.predict(image_array[None, :, :, :], batch_size=1))
+        steering_angle = common.inv_steer_radius_to_steer_angle(inv_steer_radius)
 
         throttle = controller.update(float(speed))
 

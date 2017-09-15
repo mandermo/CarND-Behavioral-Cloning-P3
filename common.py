@@ -14,3 +14,22 @@ def preprocess_img(img):
     # Convert to -1 .. 1 to make it training better.
     img = 2. * img - 1.
     return img
+
+
+# Assume a wheel base of 2.5 meters.
+DEFAULT_CAR_WHEELBASE = 2.5
+
+# Converts the steering angle to inverse steering radius.
+# Can operate on list of angles.
+def steer_angle_to_inv_steer_radius(angle):
+    # http://www.davdata.nl/math/turning_radius.html
+    radians = np.deg2rad(angle)
+    inv_radius = np.tan(radians)/DEFAULT_CAR_WHEELBASE
+    return inv_radius
+
+
+# Converts inv steer radius to steering angle in degrees.
+def inv_steer_radius_to_steer_angle(inv_radius):
+    radians = np.arctan(inv_radius * DEFAULT_CAR_WHEELBASE)
+    angle = np.rad2deg(radians)
+    return angle

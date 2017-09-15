@@ -67,13 +67,15 @@ def make_sample_from_line(line, augment):
     img = cv2.imread(line.center_img_path)
     img = common.preprocess_img(img)
     angle = line.angle
+    inv_steer_radius = common.steer_angle_to_inv_steer_radius(angle)
 
     if augment:
         if np.random.choice([False, True]):
             img = cv2.flip(img,1)
             angle = -angle
+            inv_steer_radius = -inv_steer_radius 
     
-    return (img,angle)
+    return (img,inv_steer_radius)
 
 
 def read_all_driving_logs(driving_log_paths):
@@ -99,6 +101,7 @@ print('num frames: {}'.format(len(lines)))
 train_generator = generator_from_lines(train_lines, True)
 validation_generator = generator_from_lines(validation_lines, False)
 
+from keras import regularizers
 from keras.models import Sequential
 from keras.layers import Cropping2D, Dense, Flatten, Lambda 
 from keras.layers.convolutional import Conv2D
@@ -111,8 +114,11 @@ model.add(Cropping2D(cropping=((69,25),(0,0)), input_shape=(160,320,3)))
 model.add(Conv2D(24, 5, 5, subsample=(2,2), activation='elu', name='conv1'))
 model.add(Dropout(0.5))
 model.add(Conv2D(36, 5, 5, subsample=(2,2), activation='elu', name='conv2'))
+model.add(Dropout(0.5))
 model.add(Conv2D(48, 5, 5, subsample=(2,2), activation='elu', name='conv3'))
+model.add(Dropout(0.5))
 model.add(Conv2D(64, 3, 3, activation='elu', name='conv4'))
+model.add(Dropout(0.5))
 model.add(Conv2D(64, 3, 3, activation='elu', name='conv5'))
 model.add(Dropout(0.5))
 model.add(Flatten())
@@ -124,8 +130,8 @@ model.add(Dense(1))
 model.compile(loss='mse', optimizer='adam')
 
 model.fit_generator(
-        train_generator, samples_per_epoch=2*len(train_lines),
+        train_generator, samples_per_epoch=len(train_lines),
         validation_data=validation_generator,
-        nb_val_samples=len(validation_lines), nb_epoch=2)
+        nb_val_samples=len(validation_lines), nb_epoch=3)
 
 model.save('model.h5')
