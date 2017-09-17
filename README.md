@@ -36,12 +36,14 @@ The goals / steps of this project are the following:
 
 My project includes the following files:
 * README.md this file summarizing the results
+* writeup_report no file with this name, README.md is used instead
 * model.py containing the script to create and train the model
 * drive.py for driving the car in autonomous mode (mo
 * model.h5 containing a trained convolution neural network 
 * common.py common code for drive.py and model.py, used preprocessing of the data
 * visualizenetwork.py used to visualize convolutional layers
 * manualdrivefilter.py used to filter out frames to keep from video, for recovery driving
+* video.mp4 a video recording of the car driving around a full lap around the track
 
 To visualize the convolutional layers, do this if you use docker:
 for i in {1..5}; do rm -rf activ${i}; mkdir activ${i}; docker run -it --rm -p 8888:8888 -v `pwd`:/src udacity/carnd-term1-starter-kit python visualizenetwork.py model.h5 conv${i} udacity-my-driving-data/IMG/center_2017_08_23_09_26_03_711.jpg --todir activ${i}; done
