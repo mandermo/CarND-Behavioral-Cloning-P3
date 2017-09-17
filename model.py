@@ -105,27 +105,28 @@ from keras.layers.convolutional import Conv2D
 from keras.layers.core import Dropout
 from keras.layers.local import LocallyConnected2D
 from keras.layers.pooling import MaxPooling2D
+from keras.optimizers import Adam
 
 model = Sequential()
 model.add(Cropping2D(cropping=((69,25),(0,0)), input_shape=(160,320,3)))
 model.add(Conv2D(24, 5, 5, subsample=(2,2), activation='elu', name='conv1'))
-model.add(Dropout(0.5))
+model.add(Dropout(0.3))
 model.add(Conv2D(36, 5, 5, subsample=(2,2), activation='elu', name='conv2'))
 model.add(Conv2D(48, 5, 5, subsample=(2,2), activation='elu', name='conv3'))
 model.add(Conv2D(64, 3, 3, activation='elu', name='conv4'))
 model.add(Conv2D(64, 3, 3, activation='elu', name='conv5'))
-model.add(Dropout(0.5))
+model.add(Dropout(0.3))
 model.add(Flatten())
 model.add(Dense(1164, activation='elu'))
 model.add(Dense(100, activation='elu'))
 model.add(Dense(50, activation='elu'))
 model.add(Dense(1))
 
-model.compile(loss='mse', optimizer='adam')
+model.compile(loss='mse', optimizer=Adam(epsilon=1e-3))
 
 model.fit_generator(
         train_generator, samples_per_epoch=2*len(train_lines),
         validation_data=validation_generator,
-        nb_val_samples=len(validation_lines), nb_epoch=2)
+        nb_val_samples=len(validation_lines), nb_epoch=3)
 
 model.save('model.h5')
